@@ -1,2 +1,5 @@
 #### Ignore Data Files #### 
 Data/
+
+## Leave large csvs alone
+*.csv
