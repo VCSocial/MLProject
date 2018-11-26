@@ -1,6 +1,6 @@
 # Project Specific
 from Simulator.genworld import GenWorld
-from Simulator.direction import Direction
+from Simulator.osmparser import OSMParser
 
 # General imports
 import sys
@@ -30,6 +30,7 @@ def main(argv):
 
     print("Generating world from file:", infile)
     # Create the world
+
     world = GenWorld(infile)
 
 
