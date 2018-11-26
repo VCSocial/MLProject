@@ -32,12 +32,13 @@ def main(argv):
     # Create the world
     world = GenWorld(infile)
 
-    compass = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
+    compass = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
     # Traverse the world
-    world.traverse(compass.index('SE'))
-    # world.traverse(compass.index('N'))
+    #world.traverse(compass.index('SE'))
+    #world.traverse(compass.index('S'))
     # world.pretty_print()
+    world.navigate_with_policy()
     world.judgement_day()
 
     #Terminate execution

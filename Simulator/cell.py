@@ -56,7 +56,7 @@ class Cell:
         self.explored = percentage
         self.marker = '~' + str(self.explored)if not self.here else '@'
 
-        if not self.here:
+        if not self.here and not self.visited :
             self.tile.setFill('orange')
 
     def get_symbol(self):
@@ -67,4 +67,8 @@ class Cell:
 
     def get_tile(self):
         return self.tile
+
+    def get_costs(self):
+        print(self.move_cost)
+        return self.move_cost
 

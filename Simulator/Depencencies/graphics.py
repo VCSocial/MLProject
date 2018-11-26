@@ -202,7 +202,8 @@ def update(rate=None):
 
 ############################################################################
 # Graphics classes start here
-        
+
+import os
 class GraphWin(tk.Canvas):
 
     """A GraphWin is a toplevel window for displaying graphics."""
@@ -215,6 +216,13 @@ class GraphWin(tk.Canvas):
         tk.Canvas.__init__(self, master, width=width, height=height,
                            highlightthickness=0, bd=0)
         self.master.title(title)
+
+        # Add icon to program
+        pwd = os.path.dirname(os.path.realpath(__file__))
+        img = tk.PhotoImage(file=os.path.join(pwd, '../../Assets/brain.png'))
+
+        self.master.iconphoto(True, img)
+#        self.master.iconbitmap('@/home/echo/Documents/MLProject/Simulator/Depencencies/brain.ico')
         self.pack()
         master.resizable(0,0)
         self.foreground = "black"

@@ -16,7 +16,7 @@ class Vehicle:
         self.loc = [0, 0]
         self.detection_radius = 1
 
-    def move(self, direction):
+    def move(self, direction, costs):
         prev = self.loc
 
         if direction == 0:
@@ -38,10 +38,12 @@ class Vehicle:
         else:
             print("INVALID DIRECTION")
 
+        # Reduce battery by the cost of movement
+        self.bat -= costs[direction]
         return self.loc[0], self.loc[1], prev[0], prev[1]
 
     def get_radius(self):
         return self.detection_radius
 
-    def coords(self):
-        return self.loc
+    def get_coords(self):
+        return self.loc[0], self.loc[1]
