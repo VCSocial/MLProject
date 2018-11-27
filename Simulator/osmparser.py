@@ -1,26 +1,25 @@
 import xml.etree.ElementTree as et
 import pandas as pd
 import numpy as np
-from mpl_toolkits.basemap import Basemap
-import matplotlib.pyplot as plt
-from PIL import Image, ImageDraw
-from pyproj import Proj, transform
 import math
 
+from .cell import Cell
+
 class OSMParser:
+    __LOGGING_LVL = 0
 
     def __init__(self):
+        # Open the OSM file for parsing
         tree = et.parse('./../Data/map.xml')
-
-        id  = []
-        lat = []
-        lon = []
         root = tree.getroot()
+
+        # Record nodes which are related to water, waterways, streams, etc...
         water_id = []
         fd_water = False
         for way in root.iter('way'):
             for tag in way.iter('tag'):
-                if (tag.get('k') == "natural" and tag.get('v') == "water") or tag.get('k') == "waterway":
+                if (tag.get('k') == "natural" and tag.get('v') == "water") or \
+                        tag.get('k') == "waterway":
                     fd_water = True
 
             if fd_water:
@@ -30,26 +29,19 @@ class OSMParser:
             fd_water = False
 
 
+        # Using node reference load data from relevant nodes
+        id  = []
+        lat = []
+        lon = []
 
         for node in root.iter('node'):
-            # if (float(node.get('lat')) <= maxlat and float(node.get('lat')) >= minlat) and \
-            #        (float(node.get('lon')) <= maxlon and float(node.get('lon')) >= minlon):
             if node.get('id') in water_id:
                 id.append(node.get('id'))
                 lat.append(float(node.get('lat')))
                 lon.append(float(node.get('lon')))
 
 
-
-
-        # id_water = []
-        # for way in root.iter('way'):
-        #
-        #     for nd way.iter('nd'):
-        #plt.scatter(lat,lon)
-        #plt.show()
-
-
+        # Setup boundaries and setup grid
         minlat = min(lat)
         minlon = min(lon)
         maxlat = max(lat)
@@ -73,10 +65,6 @@ class OSMParser:
             clon.append(minlon + (i * div_upp))
 
 
-        print(clat)
-        print("*******************")
-        print(clon)
-
         grid_lat = [-1] * j
         grid_lon = [-1] * j
 
@@ -85,9 +73,9 @@ class OSMParser:
             grid += [['&'] * j]
 
 
-        overwrites = 0
         for k in range(len(lat)):
-            print(lat[k], lon[k])
+            if OSMParser.__LOGGING_LVL > 0:
+                print(lat[k], lon[k])
 
             for i in range(0, j - 1):
                 m = (lat[k] > clat[i])
@@ -97,41 +85,42 @@ class OSMParser:
                         grid_lat[i+1] = lat[k]
                     else:
                         grid_lat[i] = lat[k]
-            print(grid_lat)
+            if OSMParser.__LOGGING_LVL > 0:
+                print(grid_lat)
 
             for i in range(0, j - 1):
                 m = (lon[k] > clon[i])
                 n = (lon[k] < clon[i + 1])
-                #print(lon[k], clon[i], clon[i+1])
                 if m and n:
-                    #print("*****************")
                     if lon[k]-clon[i] > lon[i+1]-lon[k]:
                         grid_lon[i+1] = lon[k]
                     else:
                         grid_lon[i] = lon[k]
 
-            print(grid_lon)
+            if OSMParser.__LOGGING_LVL > 0:
+                print(grid_lon)
             try:
-                if grid[grid_lat.index(lat[k])][grid_lon.index(lon[k])] == 'X':
-                    overwrites += 1
-                    #grid[grid_lat.index(lat[k]) + 1][grid_lon.index(lon[k]) + 1]
-
                 grid[grid_lat.index(lat[k])][grid_lon.index(lon[k])] = 'X'
             except:
                 print("NOT IN LIST")
 
-        print(overwrites, "overwritten cells")
+        # Attempt to fill out distortions caused by projecting
+        # sphere surface to 2D grid
 
         # Horizontal Pass
         for y in range(j):
             try:
                 init = grid[y].index('X')
                 term = len(grid[y]) - grid[y][::-1].index('X') - 1
-                print("First occurrence at:", init, "last occurrence at:", term)
-                for x in range (init + 1, term):
+
+                if OSMParser.__LOGGING_LVL > 0:
+                    print("First occurrence at:", init, "last occurrence at:", term)
+                for x in range(init + 1, term):
                     grid[y][x] = 'X'
             except:
-                print("NOT IN LIST")
+                if OSMParser.__LOGGING_LVL > 0:
+                    print("NOT IN LIST")
+                continue
 
         # Vertical Pass
         activ_pass = False
@@ -145,10 +134,20 @@ class OSMParser:
                     if activ_pass:
                         grid[y][x] = 'X'
                 except:
-                    print("Out of Range")
+                    if OSMParser.__LOGGING_LVL > 0:
+                        print("Out of Range")
+                    continue
+
+        if OSMParser.__LOGGING_LVL > 0:
+            df = pd.DataFrame(np.array(grid))
+            df.to_csv('../Output/new_test.csv')
+
+        self.register_grid(grid)
 
 
-        df = pd.DataFrame(np.array(grid))
-        df.to_csv('new_test.csv')
+    def register_grid(self, gd):
+        self.grid = gd
 
-o = OSMParser()
+
+    def retrieve_mapping(self):
+        return self.grid
