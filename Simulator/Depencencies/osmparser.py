@@ -10,7 +10,7 @@ import math
 class OSMParser:
 
     def __init__(self):
-        tree = et.parse('./../Data/map.xml')
+        tree = et.parse('map.xml')
 
         id  = []
         lat = []

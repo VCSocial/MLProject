@@ -6,7 +6,6 @@ import os
 # User generated classes
 from .cell import Cell
 from .vehicle import Vehicle
-from .osmparser import OSMParser
 from .LearningAlgorithms.policy import Policy
 
 # Hard dep on this package for graphics

@@ -1,6 +1,6 @@
 # Project Specific
 from Simulator.genworld import GenWorld
-from Simulator.osmparser import OSMParser
+#from Simulator.osmparser import OSMParser
 
 # General imports
 import sys
