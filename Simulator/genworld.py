@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 import datetime as dt
-import os
+import random
 
 # User generated classes
+from .osmparser import OSMParser
 from .cell import Cell
 from .vehicle import Vehicle
 from .LearningAlgorithms.policy import Policy
@@ -20,19 +21,54 @@ class GenWorld:
     def __init__(self, file_path, lvl=2):
         GenWorld.__LOGGING_LEVEL = lvl
         try:
-            pd.set_option("display.precision", 32)
-            self.grid_df = pd.read_csv(file_path, sep=";",  na_values=['(NA)']).fillna(0)
+            o = OSMParser(file_path)
+            grid, attrs = o.retrieve_mapping()
         except FileNotFoundError as err:
             print(err)
         else:
             title = "GridWorld: " + file_path
-            self.make_grid(title)
+
+            #self.make_grid(title)
+            self.init_gui(grid, attrs, title)
             self.init_simulation()
-            self.pretty_print()
+            # self.pretty_print()
 
 
     def print_df(self, head=True, sz=5):
         print(self.grid_df.head(sz) if head else self.grid_df)
+
+    def init_gui(self, grid, attrs, title):
+        lim_y = len(grid)
+        lim_x = len(grid[0])
+
+        print("Board dimensions:", lim_x, ",", lim_y)
+        # Build the window
+        cell_sz = 8
+        self.win = GraphWin(title, lim_x * cell_sz + lim_x * cell_sz, lim_y * cell_sz)
+        self.win.setBackground('black')
+
+        dummy_atr = 'I\'m a gnome, and you got gnomed!'
+
+        print("Generating graphical representation")
+        gph_x = 0
+        gph_y = 0
+        for y in range(lim_y):
+            for x in range(lim_x):
+                upr = Point(gph_x, gph_y)
+                lwr = Point(gph_x + cell_sz, gph_y + cell_sz)
+                grid[y][x] = Cell(dummy_atr, upr, lwr,
+                                  block=False if grid[y][x] == 'O' else True)
+
+                ((grid[y][x]).get_tile()).draw(self.win)
+                gph_x += cell_sz
+
+            gph_x = 0
+            gph_y += cell_sz
+        print("Finished generation")
+        self.real_grid = grid
+        while self.win.checkKey() != 'w':
+            continue
+        self.win.update()
 
 
     def make_grid(self, title):
@@ -85,14 +121,13 @@ class GenWorld:
 
         while self.win.checkKey() != 'w':
             continue
-        self.win.redraw()
+        self.win.update()
 
         if GenWorld.__LOGGING_LEVEL == 1:
             print(np.array(self.real_grid))
         if GenWorld.__LOGGING_LEVEL == 2:
             df = pd.DataFrame(np.array(self.real_grid))
             df.to_csv("relative_grid.csv")
-
 
 
     def inspect_radius(self, cur_x, cur_y):
@@ -122,29 +157,39 @@ class GenWorld:
                 except IndexError:
                     #print("Out of Bounds.")
                     continue
-
+        print("Moves found:", coords)
         return exp_rate, coords
 
 
     def init_simulation(self, init_x=0, init_y=0):
-        self.uav = Vehicle()
+        print("Initializing simulation!")
+        print("SYMBOL:",self.real_grid[init_x][init_y].get_symbol())
+
+        while self.real_grid[init_x][init_y].get_symbol() == 'X':
+            print("Invalid start finding new start")
+            init_y = random.randint(0, len(self.real_grid))
+            init_x = random.randint(0, len(self.real_grid[0]))
+
+        self.uav = Vehicle(init_x, init_y)
         (self.real_grid[init_x][init_y]).visit()
         (self.real_grid[init_x][init_y]).explore(100)
         self.inspect_radius(init_x, init_y)
 
         while self.win.checkKey() != 'w':
             continue
-        self.win.redraw()
+        self.win.update()
 
 
     def traverse(self, direction):
         #TODO Dirty hack here, improve implementation
         i, j = self.uav.get_coords()
         costs = (self.real_grid[i][j]).get_costs()
-        x, y, old_x, old_y = self.uav.move(direction, costs)
+        x, y, old_x, old_y = self.uav.move(direction, costs,
+                                           self.real_grid)
 
         print("MOVING from", old_x, old_y)
         print("MOVING to", x, y)
+
         try:
             (self.real_grid[old_x][old_y]).leave()
             (self.real_grid[x][y]).visit()
@@ -154,10 +199,11 @@ class GenWorld:
 
         while self.win.checkKey() != 'w':
             continue
-        self.win.redraw()
+        self.win.update()
 
         fname = str(dt.datetime.now()) + "_move.csv"
         self.pretty_print(os.path.join("./Output/", fname))
+
 
     def navigate_with_policy(self):
         p = Policy()

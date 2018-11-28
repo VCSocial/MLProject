@@ -3,14 +3,12 @@ import pandas as pd
 import numpy as np
 import math
 
-from .cell import Cell
-
 class OSMParser:
     __LOGGING_LVL = 0
 
-    def __init__(self):
+    def __init__(self, infile):
         # Open the OSM file for parsing
-        tree = et.parse('./../Data/map.xml')
+        tree = et.parse(infile)
         root = tree.getroot()
 
         # Record nodes which are related to water, waterways, streams, etc...
@@ -70,9 +68,10 @@ class OSMParser:
 
         grid = []
         for row in range(j):
-            grid += [['&'] * j]
+            grid += [['X'] * j]
 
 
+        atr = []
         for k in range(len(lat)):
             if OSMParser.__LOGGING_LVL > 0:
                 print(lat[k], lon[k])
@@ -100,7 +99,8 @@ class OSMParser:
             if OSMParser.__LOGGING_LVL > 0:
                 print(grid_lon)
             try:
-                grid[grid_lat.index(lat[k])][grid_lon.index(lon[k])] = 'X'
+                atr.append([id[k], lat[k], lon[k]])
+                grid[grid_lat.index(lat[k])][grid_lon.index(lon[k])] = 'O'
             except:
                 print("NOT IN LIST")
 
@@ -110,13 +110,13 @@ class OSMParser:
         # Horizontal Pass
         for y in range(j):
             try:
-                init = grid[y].index('X')
-                term = len(grid[y]) - grid[y][::-1].index('X') - 1
+                init = grid[y].index('O')
+                term = len(grid[y]) - grid[y][::-1].index('O') - 1
 
                 if OSMParser.__LOGGING_LVL > 0:
                     print("First occurrence at:", init, "last occurrence at:", term)
                 for x in range(init + 1, term):
-                    grid[y][x] = 'X'
+                    grid[y][x] = 'O'
             except:
                 if OSMParser.__LOGGING_LVL > 0:
                     print("NOT IN LIST")
@@ -127,12 +127,12 @@ class OSMParser:
         for x in range(j):
             for y in range(j):
                 try:
-                    if grid[y][x] == '&' and grid[y + 1][x] == 'X':
+                    if grid[y][x] == 'X' and grid[y + 1][x] == 'O':
                         activ_pass = True
-                    if grid[y][x] == 'X' and grid[y + 1][x] == '&':
+                    if grid[y][x] == 'O' and grid[y + 1][x] == 'X':
                         activ_pass = False
                     if activ_pass:
-                        grid[y][x] = 'X'
+                        grid[y][x] = 'O'
                 except:
                     if OSMParser.__LOGGING_LVL > 0:
                         print("Out of Range")
@@ -142,12 +142,13 @@ class OSMParser:
             df = pd.DataFrame(np.array(grid))
             df.to_csv('../Output/new_test.csv')
 
-        self.register_grid(grid)
+        self.register_grid(grid, atr)
 
 
-    def register_grid(self, gd):
+    def register_grid(self, gd, atr):
         self.grid = gd
+        self.attr = atr
 
 
     def retrieve_mapping(self):
-        return self.grid
+        return self.grid, self.attr.reverse()

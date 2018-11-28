@@ -1,6 +1,9 @@
+import math
+
 class Vehicle:
 
-    def __init__(self, bat=100, reg_data_rec=0, local_data_rec=0):
+    def __init__(self, init_x=0, init_y=0, bat=100, reg_data_rec=0,
+                 local_data_rec=0):
         """ Create a vehicle which navigates out grid world
 
         :param bat: percentage of battery for the UAV
@@ -13,10 +16,11 @@ class Vehicle:
 
         # Record cells visited
         self.visited = 0
-        self.loc = [0, 0]
+        self.loc = [init_x, init_y]
         self.detection_radius = 1
 
-    def move(self, direction, costs):
+
+    def move(self, direction, costs, grid):
         prev = self.loc
 
         if direction == 0:
@@ -24,6 +28,7 @@ class Vehicle:
         elif direction == 1:
             self.loc = [self.loc[0] - 1, self.loc[1] + 1]
         elif direction == 2:
+
             self.loc = [self.loc[0], self.loc[1] + 1]
         elif direction == 3:
             self.loc = [self.loc[0] + 1, self.loc[1] + 1]
@@ -38,8 +43,14 @@ class Vehicle:
         else:
             print("INVALID DIRECTION")
 
-        # Reduce battery by the cost of movement
-        self.bat -= costs[direction]
+        # Reduce battery by the cost of movement or
+        # don't move to invalid direction
+        if math.inf in grid[self.loc[0]][self.loc[1]].get_costs():
+            print("Staying put")
+            self.loc = prev
+        else:
+            self.bat -= costs[direction]
+
         return self.loc[0], self.loc[1], prev[0], prev[1]
 
     def get_radius(self):

@@ -19,7 +19,7 @@ class Cell:
             self.move_cost = [math.inf, math.inf, math.inf, math.inf,
                                math.inf, math.inf, math.inf, math.inf]
             self.marker = 'X'
-            self.tile.setFill('red')
+            self.tile.setFill('brown')
         else:
             self.move_cost = moves
             self.marker = 'O'
