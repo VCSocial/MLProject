@@ -42,6 +42,7 @@ class GenWorld:
         lim_x = len(grid[0])
 
         print("Board dimensions:", lim_x, ",", lim_y)
+
         # Build the window
         cell_sz = 8
         self.win = GraphWin(title, lim_x * cell_sz + lim_x * cell_sz,
@@ -53,6 +54,9 @@ class GenWorld:
         print("Generating graphical representation")
         gph_x = 0
         gph_y = 0
+
+        # Total possible explorable tiles
+        self.exploration_potential = 0
         for y in range(lim_y):
             for x in range(lim_x):
                 upr = Point(gph_x, gph_y)
@@ -60,17 +64,48 @@ class GenWorld:
                 grid[y][x] = Cell(dummy_atr, upr, lwr,
                                   block=False if grid[y][x] == 'O' else True)
 
+                if (grid[y][x]).get_symbol() == 'O':
+                    self.exploration_potential += 100
+
                 ((grid[y][x]).get_tile()).draw(self.win)
                 gph_x += cell_sz
 
             gph_x = 0
             gph_y += cell_sz
         print("Finished generation")
+        print("Total exploration potential:", self.exploration_potential)
         self.real_grid = grid
         # self.original_grid = grid
 
         # Y offset: lim_y * cell_sz,
         #  text = power line text here
+        # X offset
+        #
+        border_width = 2
+        gph_x = lim_x * cell_sz
+        gph_y = 0
+        for x in range(border_width):
+            for y in range(lim_y * cell_sz + cell_sz * 2):
+                p1 = Point(gph_x, gph_y)
+                p2 = Point(gph_x + cell_sz, gph_y + cell_sz)
+                border = Rectangle(p1, p2)
+                border.setFill(color_rgb(49, 54, 59))
+                border.setOutline(color_rgb(49, 54, 59))
+                border.draw(self.win)
+                gph_y += cell_sz
+
+            gph_x += cell_sz
+            gph_y = 0
+
+        # lim_x * cell_sz / 2
+        self.txt = Text(Point(lim_x * cell_sz / 2, lim_y * cell_sz + 1 * cell_sz), "")
+        self.txt.setTextColor('white')
+        self.txt.setFace("courier")
+        self.txt.setText("To begin the simulation press W")
+        self.txt.draw(self.win)
+
+        # for y in range(lim_y * cell_sz + 1, lim_y * cell_sz + 1 + cell_sz * 2):
+        #     for x in range(lim_x):
 
 
         self.interaction()
@@ -189,6 +224,11 @@ class GenWorld:
         (self.real_grid[init_x][init_y]).explore(100)
         self.inspect_radius(init_x, init_y)
 
+        # \t\t\t\t\t\t\t\t\t
+        msg = "INIT \t\t\t\t\t\t Lat: " + str(init_x) + \
+              " Lon: " + str(init_y)
+        self.txt.setText(msg)#"---INIT--- \t\t\t\t\t\t\t\ Lat:")
+        # self.txt.draw(self.win)
         self.interaction()
 
 
@@ -209,6 +249,13 @@ class GenWorld:
         except:
             print("Trying to exit World")
 
+        if x == old_x and y == old_y:
+            msg = "WAIT \t\t\t\t\t\t Lat: " + str(x) + \
+                " Lon: " + str(y)
+        else:
+            msg = "MOVE \t\t\t\t\t\t Lat: " + str(x) + \
+                  " Lon: " + str(y)
+        self.txt.setText(msg)
         self.interaction()
 
         fname = str(dt.datetime.now()) + "_move.csv"

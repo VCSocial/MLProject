@@ -1,5 +1,5 @@
 import math
-from .Depencencies.graphics import Rectangle
+from .Depencencies.graphics import Rectangle, color_rgb
 from .Depencencies.graphics import Point
 
 
@@ -24,6 +24,7 @@ class Cell:
         else:
             self.move_cost = moves
             self.marker = 'O'
+            # color_rgb('85','170','255')
             self.tile.setOutline('blue')
             self.tile.setFill('blue')
 
