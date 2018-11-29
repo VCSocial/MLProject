@@ -37,9 +37,9 @@ def main(argv):
     compass = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
     # Traverse the world
     # world.traverse(compass.index('SE'))
-    world.traverse(compass.index('NW'))
+    #world.traverse(compass.index('NW'))
     # world.pretty_print()
-    # world.navigate_with_policy()
+    world.navigate_with_policy()
     world.judgement_day()
 
     #Terminate execution

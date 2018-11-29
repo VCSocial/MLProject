@@ -18,7 +18,7 @@ class GenWorld:
     """ Generate the grid world for ML"""
     __LOGGING_LEVEL = 0
 
-    def __init__(self, file_path, lvl=2):
+    def __init__(self, file_path, lvl=1):
         GenWorld.__LOGGING_LEVEL = lvl
         try:
             o = OSMParser(file_path)
@@ -258,8 +258,9 @@ class GenWorld:
         self.txt.setText(msg)
         self.interaction()
 
-        fname = str(dt.datetime.now()) + "_move.csv"
-        self.pretty_print(os.path.join("./Output/", fname))
+        if GenWorld.__LOGGING_LEVEL == 2:
+            fname = str(dt.datetime.now()) + "_move.csv"
+            self.pretty_print(os.path.join("./Output/", fname))
 
 
     def navigate_with_policy(self):
