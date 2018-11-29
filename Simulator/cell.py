@@ -13,16 +13,18 @@ class Cell:
 
         # Generate a new tile
         self.tile = Rectangle(pt1, pt2)
-        self.tile.setOutline('white')
+        #self.tile.setOutline('white')
         # N NE E SE S SW W NW
         if self.blocked:
             self.move_cost = [math.inf, math.inf, math.inf, math.inf,
                                math.inf, math.inf, math.inf, math.inf]
             self.marker = 'X'
+            self.tile.setOutline('brown')
             self.tile.setFill('brown')
         else:
             self.move_cost = moves
             self.marker = 'O'
+            self.tile.setOutline('blue')
             self.tile.setFill('blue')
 
             # Reduce cost by intensity

@@ -44,7 +44,8 @@ class GenWorld:
         print("Board dimensions:", lim_x, ",", lim_y)
         # Build the window
         cell_sz = 8
-        self.win = GraphWin(title, lim_x * cell_sz + lim_x * cell_sz, lim_y * cell_sz)
+        self.win = GraphWin(title, lim_x * cell_sz + lim_x * cell_sz,
+                            lim_y * cell_sz + cell_sz * 2)
         self.win.setBackground('black')
 
         dummy_atr = 'I\'m a gnome, and you got gnomed!'
@@ -66,9 +67,13 @@ class GenWorld:
             gph_y += cell_sz
         print("Finished generation")
         self.real_grid = grid
-        while self.win.checkKey() != 'w':
-            continue
-        self.win.update()
+        # self.original_grid = grid
+
+        # Y offset: lim_y * cell_sz,
+        #  text = power line text here
+
+
+        self.interaction()
 
 
     def make_grid(self, title):
@@ -119,9 +124,7 @@ class GenWorld:
             # if end_loop:
             #     break
 
-        while self.win.checkKey() != 'w':
-            continue
-        self.win.update()
+        self.interaction()
 
         if GenWorld.__LOGGING_LEVEL == 1:
             print(np.array(self.real_grid))
@@ -160,6 +163,17 @@ class GenWorld:
         print("Moves found:", coords)
         return exp_rate, coords
 
+    def interaction(self):
+
+        while self.win.checkKey() != 'w':
+            if self.win.checkKey() == 'q':
+                self.judgement_day()
+            # if self.win.checkKey() == 'r':
+            #     self.real_grid = self.original_grid
+            #     self.init_gui()
+            #     self.init_simulation()
+            continue
+        self.win.update()
 
     def init_simulation(self, init_x=0, init_y=0):
         print("Initializing simulation!")
@@ -175,9 +189,7 @@ class GenWorld:
         (self.real_grid[init_x][init_y]).explore(100)
         self.inspect_radius(init_x, init_y)
 
-        while self.win.checkKey() != 'w':
-            continue
-        self.win.update()
+        self.interaction()
 
 
     def traverse(self, direction):
@@ -197,9 +209,7 @@ class GenWorld:
         except:
             print("Trying to exit World")
 
-        while self.win.checkKey() != 'w':
-            continue
-        self.win.update()
+        self.interaction()
 
         fname = str(dt.datetime.now()) + "_move.csv"
         self.pretty_print(os.path.join("./Output/", fname))
