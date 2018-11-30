@@ -58,3 +58,6 @@ class Vehicle:
 
     def get_coords(self):
         return self.loc[0], self.loc[1]
+
+    def get_bat(self):
+        return self.bat

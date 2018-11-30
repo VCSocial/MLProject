@@ -17,12 +17,12 @@ from .LearningAlgorithms.policy import Policy
 # Hard dep on this package for graphics
 from .Depencencies.graphics import *
 
-class GenWorld:
+class World:
     """ Generate the grid world for ML"""
     __LOGGING_LEVEL = 0
 
     def __init__(self, file_path, lvl=1):
-        GenWorld.__LOGGING_LEVEL = lvl
+        World.__LOGGING_LEVEL = lvl
         try:
             o = OSMParser(file_path)
             grid, attrs = o.retrieve_mapping()
@@ -57,6 +57,7 @@ class GenWorld:
         # Total possible explorable tiles
         self.exploration_potential = 0
         self.explored_so_far = 0
+
 
         for y in range(lim_y):
             for x in range(lim_x):
@@ -100,8 +101,6 @@ class GenWorld:
         self.txt.setText("To begin the simulation press W")
         self.txt.draw(self.win)
 
-
-
         # lwr_graph = "lwr_graph.png"
         # lwr_fig = matplotlib.pyplot.figure()
         # lwr_fig.suptitle('Exploration Ratio')
@@ -135,18 +134,18 @@ class GenWorld:
             for i in range(init_x, term_x):
                 try:
                     # Avoid out of bounds or overwriting visited
-                    if j < 0 or i < 0 \
-                            or (self.real_grid[i][j]).cell_stats() == 100:
+                    if j < 0 or i < 0:
                         continue
 
                     e = 0
-                    # If it is horizontal/ vertical
-                    if i == cur_x or j == cur_y:
-                        e = (self.real_grid[i][j]).explore(80)
+                    if (self.real_grid[i][j]).cell_stats() != 100:
+                        # If it is horizontal/ vertical
+                        if i == cur_x or j == cur_y:
+                            e = (self.real_grid[i][j]).explore(80)
 
-                    # Otherwise the choice is diagonal
-                    elif not ((self.real_grid[i][j]).cell_stats() > 40):
-                        e = (self.real_grid[i][j]).explore(40)
+                        # Otherwise the choice is diagonal
+                        elif not ((self.real_grid[i][j]).cell_stats() > 40):
+                            e = (self.real_grid[i][j]).explore(40)
 
                     self.explored_so_far += e
 
@@ -160,7 +159,7 @@ class GenWorld:
                 except IndexError:
                     continue
 
-        if GenWorld.__LOGGING_LEVEL == 1:
+        if World.__LOGGING_LEVEL == 1:
             print("Moves found:", coords)
 
         return exp_rate, coords
@@ -175,14 +174,14 @@ class GenWorld:
         self.win.update()
 
     def init_simulation(self, init_x=0, init_y=0):
-        if GenWorld.__LOGGING_LEVEL == 1:
+        if World.__LOGGING_LEVEL == 1:
             print("Initializing simulation!")
             print("SYMBOL:",self.real_grid[init_x][init_y].get_symbol())
 
         while self.real_grid[init_x][init_y].get_symbol() == 'X':
             init_y = random.randint(0, len(self.real_grid) - 1)
             init_x = random.randint(0, len(self.real_grid[0]) - 1)
-            if GenWorld.__LOGGING_LEVEL == 1:
+            if World.__LOGGING_LEVEL == 1:
                  print("Invalid start finding new start")
                  print("Coordinates found:", init_x, init_y)
                  print("Range x:", len(self.real_grid[0]) -1, "Range y:",
@@ -194,9 +193,12 @@ class GenWorld:
         self.explored_so_far += (self.real_grid[init_x][init_y]).cell_stats()
         self.inspect_radius(init_x, init_y)
 
+        bat = "BAT:" + "{:.2f}".format(self.uav.get_bat()) + "/100 "
         per = "{:.4f}".format((100.0 / self.exploration_potential )
                               * self.explored_so_far)
-        msg = "INIT \t\t(" + str(per) + "% explored" + ")\t Lat: " \
+
+
+        msg = "INIT \t(" + str(per) + "% explored" + ")\t " + bat + "Lat: " \
               + str(init_x) + " Lon: " + str(init_y)
         self.txt.setText(msg)
         self.interaction()
@@ -209,7 +211,7 @@ class GenWorld:
         x, y, old_x, old_y = self.uav.move(direction, costs,
                                            self.real_grid)
 
-        if GenWorld.__LOGGING_LEVEL == 1:
+        if World.__LOGGING_LEVEL == 1:
             print("MOVING from", old_x, old_y)
             print("MOVING to", x, y)
 
@@ -224,18 +226,19 @@ class GenWorld:
         except:
             print("Trying to exit World")
 
+        bat = "BAT:" + "{:.2f}".format(self.uav.get_bat()) + "/100 "
         per = "{:.4f}".format((100.0 / self.exploration_potential)
                               * self.explored_so_far)
         if x == old_x and y == old_y:
-            msg = "WAIT \t\t(" + str(per) + "% explored" + ")\t Lat: " \
+            msg = "WAIT \t(" + str(per) + "% explored" + ")\t " + bat + "Lat: " \
                   + str(x) + " Lon: " + str(y)
         else:
-            msg = "MOVE \t\t(" + str(per) + "% explored" + ")\t Lat: " \
+            msg = "MOVE \t(" + str(per) + "% explored" + ")\t " + bat + "Lat: " \
                   + str(x) + " Lon: " + str(y)
         self.txt.setText(msg)
         self.interaction()
 
-        if GenWorld.__LOGGING_LEVEL == 2:
+        if World.__LOGGING_LEVEL == 2:
             fname = str(dt.datetime.now()) + "_move.csv"
             self.pretty_print(os.path.join("./Output/", fname))
 
@@ -249,10 +252,16 @@ class GenWorld:
                 opts, coords = self.inspect_radius(x, y)
                 pos = [x, y]
 
+
+                print("In policy")
+
                 # Get the cheapest move based on our current location
                 d = p.random_move(pos, opts, coords)
+                print("Still policy")
                 self.traverse(d)
+                print("Also still")
             except:
+                print("POLICY FAILURE")
                 continue
 
 

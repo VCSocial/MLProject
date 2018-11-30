@@ -1,5 +1,5 @@
 # Project Specific
-from Simulator.genworld import GenWorld
+from Simulator.world import World
 
 # General imports
 import sys
@@ -31,7 +31,7 @@ def main(argv):
     print("Generating world from file:", infile)
     # Create the world
 
-    world = GenWorld(infile)
+    world = World(infile)
 
 
     compass = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
