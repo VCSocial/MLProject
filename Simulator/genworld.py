@@ -51,6 +51,8 @@ class GenWorld:
 
         # Total possible explorable tiles
         self.exploration_potential = 0
+        self.explored_so_far = 0
+
         for y in range(lim_y):
             for x in range(lim_x):
                 upr = Point(gph_x, gph_y)
@@ -112,20 +114,23 @@ class GenWorld:
                             or (self.real_grid[i][j]).cell_stats() == 100:
                         continue
 
+                    e = 0
                     # If it is horizontal/ vertical
                     if i == cur_x or j == cur_y:
-                        (self.real_grid[i][j]).explore(80)
+                        e = (self.real_grid[i][j]).explore(80)
 
                     # Otherwise the choice is diagonal
                     elif not ((self.real_grid[i][j]).cell_stats() > 40):
-                        (self.real_grid[i][j]).explore(40)
+                        e = (self.real_grid[i][j]).explore(40)
 
+                    self.explored_so_far += e
+
+                    # TODO: Is this really necessary?
                     exp_rate.append((self.real_grid[i][j]).cell_stats())
 
                     # Do not record the current location
                     if cur_x == i and cur_y == j :
                         continue
-
                     coords.append([i, j])
                 except IndexError:
                     continue
@@ -154,15 +159,19 @@ class GenWorld:
             if GenWorld.__LOGGING_LEVEL == 1:
                  print("Invalid start finding new start")
                  print("Coordinates found:", init_x, init_y)
-                 print("Range x:", len(self.real_grid[0]) -1, "Range y:", len(self.real_grid) -1)
+                 print("Range x:", len(self.real_grid[0]) -1, "Range y:",
+                       len(self.real_grid) -1)
 
         self.uav = Vehicle(init_x, init_y)
         (self.real_grid[init_x][init_y]).visit()
         (self.real_grid[init_x][init_y]).explore(100)
+        self.explored_so_far += (self.real_grid[init_x][init_y]).cell_stats()
         self.inspect_radius(init_x, init_y)
 
-        msg = "INIT \t\t\t\t\t\t Lat: " + str(init_x) + \
-              " Lon: " + str(init_y)
+        per = "{:.4f}".format((100.0 / self.exploration_potential )
+                              * self.explored_so_far)
+        msg = "INIT \t\t(" + str(per) + "% explored" + ")\t Lat: " \
+              + str(init_x) + " Lon: " + str(init_y)
         self.txt.setText(msg)
         self.interaction()
 
@@ -181,16 +190,22 @@ class GenWorld:
         try:
             (self.real_grid[old_x][old_y]).leave()
             (self.real_grid[x][y]).visit()
+            (self.real_grid[x][y]).explore(100)
+
+            if not (self.real_grid[x][y]).is_visited():
+               self.explored_so_far += (self.real_grid[x][y]).cell_stats()
             self.inspect_radius(x, y)
         except:
             print("Trying to exit World")
 
+        per = "{:.4f}".format((100.0 / self.exploration_potential)
+                              * self.explored_so_far)
         if x == old_x and y == old_y:
-            msg = "WAIT \t\t\t\t\t\t Lat: " + str(x) + \
-                " Lon: " + str(y)
+            msg = "WAIT \t\t(" + str(per) + "% explored" + ")\t Lat: " \
+                  + str(x) + " Lon: " + str(y)
         else:
-            msg = "MOVE \t\t\t\t\t\t Lat: " + str(x) + \
-                  " Lon: " + str(y)
+            msg = "MOVE \t\t(" + str(per) + "% explored" + ")\t Lat: " \
+                  + str(x) + " Lon: " + str(y)
         self.txt.setText(msg)
         self.interaction()
 

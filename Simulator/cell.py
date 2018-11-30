@@ -4,6 +4,7 @@ from .Depencencies.graphics import Point
 
 
 class Cell:
+    __COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
     def __init__(self, attr, pt1, pt2,
                  moves=[0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
@@ -56,11 +57,20 @@ class Cell:
         self.marker = '$'
 
     def explore(self, percentage):
-        self.explored = percentage
+        if self.marker == 'X':
+            self.explored = 0
+        else:
+            self.explored = percentage
         self.marker = '~' + str(self.explored)if not self.here else '@'
 
         if not self.here and not self.visited :
             self.tile.setFill('orange')
+
+        if percentage - self.explored > 0:
+            return percentage - self.explored
+
+        return 0
+
 
     def get_symbol(self):
         return self.marker
@@ -74,4 +84,7 @@ class Cell:
     def get_costs(self):
         print(self.move_cost)
         return self.move_cost
+
+    def is_visited(self):
+        return self.visited
 
