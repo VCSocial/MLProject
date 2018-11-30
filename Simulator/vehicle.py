@@ -17,7 +17,7 @@ class Vehicle:
         # Record cells visited
         self.visited = 0
         self.loc = [init_x, init_y]
-        self.detection_radius = 2
+        self.detection_radius = 1
 
 
     def move(self, direction, costs, grid):

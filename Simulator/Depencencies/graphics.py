@@ -878,19 +878,21 @@ class Entry(GraphicsObject):
         if self.entry:
             self.entry.config(fg=color)
 
+# from PIL import Image
 
 class Image(GraphicsObject):
 
     idCount = 0
     imageCache = {} # tk photoimages go here to avoid GC while drawn 
     
-    def __init__(self, p, *pixmap):
+    def __init__(self, p, *pixmap, width, height):
         GraphicsObject.__init__(self, [])
         self.anchor = p.clone()
         self.imageId = Image.idCount
         Image.idCount = Image.idCount + 1
         if len(pixmap) == 1: # file name provided
             self.img = tk.PhotoImage(file=pixmap[0], master=_root)
+            self.img = self.img.zoom(width, height)
         else: # width and height provided
             width, height = pixmap
             self.img = tk.PhotoImage(master=_root, width=width, height=height)

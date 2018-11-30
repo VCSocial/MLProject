@@ -2,6 +2,11 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import random
+import matplotlib.pyplot as plt
+import matplotlib
+import PIL
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 # User generated classes
 from .osmparser import OSMParser
@@ -95,6 +100,26 @@ class GenWorld:
         self.txt.setText("To begin the simulation press W")
         self.txt.draw(self.win)
 
+
+
+        # lwr_graph = "lwr_graph.png"
+        # lwr_fig = matplotlib.pyplot.figure()
+        # lwr_fig.suptitle('Exploration Ratio')
+        # sub = lwr_fig.add_subplot(111)
+        # sub.plot(100, (100.0 / self.exploration_potential) *
+        #               self.explored_so_far)
+        # lwr_fig.savefig(lwr_graph)
+        #
+        # im_offset_x = (lim_x * cell_sz) + (lim_x * cell_sz / 2)
+        # im_offset_upr_y = (lim_y * cell_sz / 2)
+        #
+        # exp_img = Image(Point(im_offset_x, im_offset_upr_y), lwr_graph,
+        #                 width=int(lim_x * cell_sz),
+        #                 height=int((lim_y * cell_sz) / 2))
+        # exp_img.draw(self.win)
+        #
+        # matplotlib.pyplot.close()
+
         self.interaction()
 
 
@@ -141,6 +166,7 @@ class GenWorld:
         return exp_rate, coords
 
     def interaction(self):
+
 
         while self.win.checkKey() != 'w':
             if self.win.checkKey() == 'q':
