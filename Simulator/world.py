@@ -12,7 +12,9 @@ from matplotlib.figure import Figure
 from .osmparser import OSMParser
 from .cell import Cell
 from .vehicle import Vehicle
+from .train import Train
 from .LearningAlgorithms.policy import Policy
+
 
 # Hard dep on this package for graphics
 from .Depencencies.graphics import *
@@ -31,9 +33,13 @@ class World:
         else:
             title = "GridWorld: " + file_path
 
-            #self.make_grid(title)
+            trainer = Train(o)
+            x, y = trainer.get_start()
+            self.actions = trainer.retrieve_actions()
+
             self.init_gui(grid, attrs, title)
-            self.init_simulation()
+            self.init_simulation(x, y)
+
 
 
     def init_gui(self, grid, attrs, title):
@@ -121,7 +127,6 @@ class World:
 
         self.interaction()
 
-
     def inspect_radius(self, cur_x, cur_y):
         init_x = cur_x - self.uav.get_radius()
         init_y = cur_y - self.uav.get_radius()
@@ -153,7 +158,7 @@ class World:
                     exp_rate.append((self.real_grid[i][j]).cell_stats())
 
                     # Do not record the current location
-                    if cur_x == i and cur_y == j :
+                    if cur_x == i and cur_y == j:
                         continue
                     coords.append([i, j])
                 except IndexError:
@@ -163,6 +168,7 @@ class World:
             print("Moves found:", coords)
 
         return exp_rate, coords
+
 
     def interaction(self):
 
@@ -175,16 +181,16 @@ class World:
 
     def init_simulation(self, init_x=0, init_y=0):
         if World.__LOGGING_LEVEL == 1:
-            print("Initializing simulation!")
-            print("SYMBOL:",self.real_grid[init_x][init_y].get_symbol())
+            print("*** Initializing simulation!")
+            print("*** SYMBOL:",self.real_grid[init_x][init_y].get_symbol())
 
         while self.real_grid[init_x][init_y].get_symbol() == 'X':
             init_y = random.randint(0, len(self.real_grid) - 1)
             init_x = random.randint(0, len(self.real_grid[0]) - 1)
             if World.__LOGGING_LEVEL == 1:
-                 print("Invalid start finding new start")
-                 print("Coordinates found:", init_x, init_y)
-                 print("Range x:", len(self.real_grid[0]) -1, "Range y:",
+                 print("*** Invalid start finding new start")
+                 print("*** Coordinates found:", init_x, init_y)
+                 print("*** Range x:", len(self.real_grid[0]) -1, "Range y:",
                        len(self.real_grid) -1)
 
         self.uav = Vehicle(init_x, init_y)
@@ -242,8 +248,33 @@ class World:
             fname = str(dt.datetime.now()) + "_move.csv"
             self.pretty_print(os.path.join("./Output/", fname))
 
-
     def navigate_with_policy(self):
+        print(self.actions)
+
+        # Run through the optimal path
+        for i in range(len(self.actions)):
+
+            # Exit if we run out of battery
+            if self.uav.bat <= 0:
+                print(">>>> Ran out of battery!")
+                break
+
+            try:
+                x, y = self.uav.get_coords()
+                self.inspect_radius(x, y)
+                self.traverse(self.actions[i])
+                print(">>>> Moving according to optimal action")
+                print(">>>> Current action:", self.actions[i])
+
+            except:
+                if World.__LOGGING_LEVEL >= 1:
+                    print(">>>> Exception executing optimal path!")
+
+        for i in range(10):
+            print("Consumed all available actions! EXITING NOW!")
+
+
+    def navigate_with_policy_legacy(self):
         p = Policy()
 
         while self.uav.bat > 0:
@@ -263,6 +294,8 @@ class World:
             except:
                 print("POLICY FAILURE")
                 continue
+
+
 
 
     def pretty_print(self, outfile=''):
