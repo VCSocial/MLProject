@@ -15,10 +15,10 @@ class Train:
         self.y = 19
 
         # Specify the start position to (41, 19), available fuel to be 100.
-        environment = env.Env(grid, 100, self.x, self.y)
+        environment = env.Env(grid, 400, self.x, self.y)
 
         # Train 100 episodes
-        Q, stats = td_control.sarsa(environment, 100)
+        Q, stats = td_control.sarsa(environment, 400)
         shape = np.shape(grid)
         start_index = np.ravel_multi_index((41, 19), shape)
 
