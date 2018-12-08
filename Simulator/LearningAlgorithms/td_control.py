@@ -9,7 +9,10 @@ def make_epsilon_greedy_policy(Q, epsilon, nA):
     def policy_fn(observation):
         A = np.ones(nA, dtype=float) * epsilon / nA
         best_action = np.argmax(Q[observation])
+        print("Obs: " + str(observation))
+        print(Q[observation])
         A[best_action] += (1.0 - epsilon)
+        print(A)
         return A
 
     return policy_fn
@@ -42,6 +45,8 @@ def sarsa(env, num_episodes, discount_factor=1.0, alpha=0.5, epsilon=0.1, num_ac
             # Take a step
             # Given an action, get the next state, the reward for this action and is this action the last action
             next_state, reward, done = env.step(action)
+
+            print("################ Reward: " + str(reward))
 
             # Pick the next action
             next_action_probs = policy(next_state)
