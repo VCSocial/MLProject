@@ -53,7 +53,7 @@ class World:
 
         # Build the window
         cell_sz = 8
-        self.win = GraphWin(title, lim_x * cell_sz + lim_x * cell_sz,
+        self.win = GraphWin(title, lim_x * cell_sz,
                             lim_y * cell_sz + cell_sz * 2)
         self.win.setBackground('black')
 
@@ -87,22 +87,6 @@ class World:
         print("Finished generation")
         print("Total exploration potential:", self.exploration_potential)
         self.real_grid = grid
-
-        border_width = 2
-        gph_x = lim_x * cell_sz
-        gph_y = 0
-        for x in range(border_width):
-            for y in range(lim_y * cell_sz + cell_sz * 2):
-                p1 = Point(gph_x, gph_y)
-                p2 = Point(gph_x + cell_sz, gph_y + cell_sz)
-                border = Rectangle(p1, p2)
-                border.setFill(color_rgb(49, 54, 59))
-                border.setOutline(color_rgb(49, 54, 59))
-                border.draw(self.win)
-                gph_y += cell_sz
-
-            gph_x += cell_sz
-            gph_y = 0
 
         self.txt = Text(Point(lim_x * cell_sz / 2, lim_y * cell_sz + 1 * cell_sz), "")
         self.txt.setTextColor('white')
