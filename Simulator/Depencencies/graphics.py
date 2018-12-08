@@ -218,10 +218,12 @@ class GraphWin(tk.Canvas):
         self.master.title(title)
 
         # Add icon to program
-        pwd = os.path.dirname(os.path.realpath(__file__))
-        img = tk.PhotoImage(file=os.path.join(pwd, '../../Assets/brain.png'))
-
-        self.master.iconphoto(True, img)
+        try:
+            pwd = os.path.dirname(os.path.realpath(__file__))
+            img = tk.PhotoImage(file=os.path.join(pwd, '../../Assets/brain.png'))
+            self.master.iconphoto(True, img)
+        except:
+            print("Err: Loading icon")
 #        self.master.iconbitmap('@/home/echo/Documents/MLProject/Simulator/Depencencies/brain.ico')
         self.pack()
         master.resizable(0,0)

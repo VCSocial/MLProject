@@ -7,7 +7,7 @@ class Cell:
     __COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
     def __init__(self, attr, pt1, pt2,
-                 moves=[0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
+                 moves=[0.71428, 0.71428, 0.71428, 0.71428, 0.71428, 0.71428, 0.71428, 0.71428],
                  block=False, windy=False, dir=0, intensity=0.0):
         self.attribs = attr
         self.blocked = block

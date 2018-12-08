@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import random
-import matplotlib.pyplot as plt
-import matplotlib
+#import matplotlib.pyplot as plt
+#import matplotlib
 import PIL
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
+#from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+#from matplotlib.figure import Figure
 
 # User generated classes
 from .osmparser import OSMParser
@@ -36,7 +36,10 @@ class World:
             trainer = Train(o)
             x, y = trainer.get_start()
             self.actions = trainer.retrieve_actions()
-
+            
+            
+            self.actions = [1, 7, 1, 7, 7, 7, 1, 1, 2, 2, 1, 1, 1, 1, 3, 3, 1, 1, 3, 1, 3, 3, 4, 5, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 3, 3, 1, 3, 3, 2, 3, 1, 7, 0, 1, 1, 1, 1, 1, 0, 2, 2, 3, 3, 1, 1, 3, 1, 3, 2, 3, 4, 3, 2, 3, 3, 1, 1, 1, 3, 3, 2, 3, 1, 1, 0, 1, 1, 7, 7, 7, 0, 1, 7, 1, 7, 7, 7, 6, 7, 6, 5, 5, 5, 5, 5, 7, 7, 7, 7, 7, 1, 1, 7, 7, 7, 5, 5, 6, 7, 5, 6, 5, 6, 5, 7, 5, 5, 4, 5, 7, 4, 7, 4, 0, 6, 7, 6, 7, 6, 7, 6, 7, 6, 7, 6, 6]
+            print(len(self.actions))
             self.init_gui(grid, attrs, title)
             self.init_simulation(x, y)
 
@@ -147,13 +150,15 @@ class World:
                         # If it is horizontal/ vertical
                         if i == cur_x or j == cur_y:
                             e = (self.real_grid[i][j]).explore(80)
+                            e = 80
 
                         # Otherwise the choice is diagonal
                         elif not ((self.real_grid[i][j]).cell_stats() > 40):
                             e = (self.real_grid[i][j]).explore(40)
-
+                            e = 40
+                    e = 0 
                     self.explored_so_far += e
-
+                    print(self.explored_so_far, e)
                     # TODO: Is this really necessary?
                     exp_rate.append((self.real_grid[i][j]).cell_stats())
 
@@ -173,10 +178,10 @@ class World:
     def interaction(self):
 
 
-        while self.win.checkKey() != 'w':
-            if self.win.checkKey() == 'q':
-                self.judgement_day()
-            continue
+        #while self.win.checkKey() != 'w':
+        #    if self.win.checkKey() == 'q':
+        #        self.judgement_day()
+        #    continue
         self.win.update()
 
     def init_simulation(self, init_x=0, init_y=0):
@@ -196,12 +201,12 @@ class World:
         self.uav = Vehicle(init_x, init_y)
         (self.real_grid[init_x][init_y]).visit()
         (self.real_grid[init_x][init_y]).explore(100)
-        self.explored_so_far += (self.real_grid[init_x][init_y]).cell_stats()
+        #self.explored_so_far += (self.real_grid[init_x][init_y]).cell_stats()
+        self.explored_so_far += 100
         self.inspect_radius(init_x, init_y)
 
         bat = "BAT:" + "{:.2f}".format(self.uav.get_bat()) + "/100 "
-        per = "{:.4f}".format((100.0 / self.exploration_potential )
-                              * self.explored_so_far)
+        per = "{:.4f}".format(100.0 / self.exploration_potential * self.explored_so_far)
 
 
         msg = "INIT \t(" + str(per) + "% explored" + ")\t " + bat + "Lat: " \
@@ -223,18 +228,23 @@ class World:
 
         try:
             (self.real_grid[old_x][old_y]).leave()
-            (self.real_grid[x][y]).visit()
             (self.real_grid[x][y]).explore(100)
 
             if not (self.real_grid[x][y]).is_visited():
-               self.explored_so_far += (self.real_grid[x][y]).cell_stats()
+                print("visit so far ", self.explored_so_far)
+                self.explored_so_far += (self.real_grid[x][y]).cell_stats()
+            
+            (self.real_grid[x][y]).visit()
             self.inspect_radius(x, y)
         except:
             print("Trying to exit World")
 
         bat = "BAT:" + "{:.2f}".format(self.uav.get_bat()) + "/100 "
-        per = "{:.4f}".format((100.0 / self.exploration_potential)
-                              * self.explored_so_far)
+        per = "{:.4f}".format(100.0 / self.exploration_potential * self.explored_so_far)
+    
+        print("POTENTIAL", self.exploration_potential)
+        print("SO FAR", self.explored_so_far)
+
         if x == old_x and y == old_y:
             msg = "WAIT \t(" + str(per) + "% explored" + ")\t " + bat + "Lat: " \
                   + str(x) + " Lon: " + str(y)
@@ -277,7 +287,7 @@ class World:
     def navigate_with_policy_legacy(self):
         p = Policy()
 
-        while self.uav.bat > 0:
+        while self.uav.bat - 0.71428 > 0:
             try:
                 x, y = self.uav.get_coords()
                 opts, coords = self.inspect_radius(x, y)
@@ -315,5 +325,7 @@ class World:
         df.to_csv("pretty_grid.csv" if outfile == '' else outfile)
 
     def judgement_day(self):
+        while self.win.checkKey() != 'q':
+            continue
         self.win.close()
 
