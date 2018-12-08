@@ -18,8 +18,11 @@ class Train:
         self.x = 41
         self.y = 19
 
+        flow_direction = 2
+        fuel = 300
+
         # Specify the start position to (41, 19), available fuel to be 100.
-        environment = env.Env(grid, 100, self.x, self.y, 0)
+        environment = env.Env(grid, fuel, self.x, self.y, flow_direction)
 
         # Train 100 episodes
         Q, stats = td_control.sarsa(environment, 1000, discount_factor=1, alpha=0.1, epsilon=0.1)
@@ -36,21 +39,26 @@ class Train:
         optimal_actions = []
         visited_cells = [start_index]
         next_cell_index = start_index
-        for i in range(99):
+        cost = 0
+        while True:
             action_values = Q[next_cell_index]
             optimal_action = np.argmax(action_values)
             next_cell_index = self.next_state(next_cell_index, optimal_action, dim_x, dim_y, shape)
 
-            for j in range(7):
-                action_values[optimal_action] = -9999999
-                print("Altered Action Values: ", action_values)
-                optimal_action = np.argmax(action_values)
-                next_cell_index = self.next_state(next_cell_index, optimal_action, dim_x, dim_y, shape)
-                if next_cell_index not in visited_cells:
-                    break
+            # for j in range(7):
+            #     action_values[optimal_action] = -9999999
+            #     print("Altered Action Values: ", action_values)
+            #     optimal_action = np.argmax(action_values)
+            #     next_cell_index = self.next_state(next_cell_index, optimal_action, dim_x, dim_y, shape)
+            #     if next_cell_index not in visited_cells:
+            #         break
 
             optimal_actions.append(optimal_action)
             visited_cells.append(next_cell_index)
+
+            cost += np.abs(optimal_action - flow_direction)
+            if cost >= fuel:
+                break
 
         print("Visited Cells: ", visited_cells)
 
