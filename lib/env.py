@@ -3,7 +3,7 @@ import numpy as np
 
 class Env:
 
-    def __init__(self, grid, max_fuel, start_x, start_y):
+    def __init__(self, grid, max_fuel, start_x, start_y, flow_direction):
 
         self.dim_x = len(grid)
         self.dim_y = len(grid[0])
@@ -29,6 +29,7 @@ class Env:
         self.start_y = start_y
         self.x = start_x
         self.y = start_y
+        self.flow_direction = flow_direction
 
         print("Value: ", value)
 
@@ -108,7 +109,10 @@ class Env:
         print("Next State: ", self.x, self.y)
         next_state = np.ravel_multi_index((self.x, self.y), self.shape)
 
-        self.fuel = self.fuel - 1
+        cost = np.abs(action - self.flow_direction)
+        #cost = 1
+
+        self.fuel = self.fuel - cost
 
         is_done = True if self.fuel <= 0 else False
 

@@ -10,6 +10,7 @@ class Train:
         # o = osmparser.OSMParser(infile)
         grid, attrs = osm.retrieve_mapping()
 
+        self.grid = grid
         # Starting coordinates
         # self.x = 41
         # self.y = 19
@@ -18,10 +19,10 @@ class Train:
         self.y = 19
 
         # Specify the start position to (41, 19), available fuel to be 100.
-        environment = env.Env(grid, 100, self.x, self.y)
+        environment = env.Env(grid, 100, self.x, self.y, 0)
 
         # Train 100 episodes
-        Q, stats = td_control.sarsa(environment, 1000, discount_factor=1, alpha=0.2, epsilon=0.1)
+        Q, stats = td_control.sarsa(environment, 1000, discount_factor=1, alpha=0.1, epsilon=0.1)
         shape = np.shape(grid)
         start_index = np.ravel_multi_index((self.x, self.y), shape)
 
@@ -33,12 +34,25 @@ class Train:
         print(start_index % dim_x)
 
         optimal_actions = []
+        visited_cells = [start_index]
         next_cell_index = start_index
         for i in range(99):
             action_values = Q[next_cell_index]
             optimal_action = np.argmax(action_values)
-            optimal_actions.append(optimal_action)
             next_cell_index = self.next_state(next_cell_index, optimal_action, dim_x, dim_y, shape)
+
+            for j in range(7):
+                action_values[optimal_action] = -9999999
+                print("Altered Action Values: ", action_values)
+                optimal_action = np.argmax(action_values)
+                next_cell_index = self.next_state(next_cell_index, optimal_action, dim_x, dim_y, shape)
+                if next_cell_index not in visited_cells:
+                    break
+
+            optimal_actions.append(optimal_action)
+            visited_cells.append(next_cell_index)
+
+        print("Visited Cells: ", visited_cells)
 
         # for i in range(99):
         #     action_values = Q[i]
@@ -62,31 +76,59 @@ class Train:
         x = cur_state // dim_x
         y = cur_state % dim_x
 
-        if action == 6:
+        # if action == 6:
+        #     y = y - 1
+        #
+        # if action == 5:
+        #     x = x + 1
+        #     y = y - 1
+        #
+        # if action == 4:
+        #     x = x + 1
+        #
+        # if action == 3:
+        #     x = x + 1
+        #     y = y + 1
+        #
+        # if action == 2:
+        #     y = y + 1
+        #
+        # if action == 1:
+        #     x = x - 1
+        #     y = y + 1
+        #
+        # if action == 0:
+        #     x = x - 1
+        #
+        # if action == 7:
+        #     x = x - 1
+        #     y = y - 1
+
+        if action == 6 and self.grid[x][y - 1] == "O":
             y = y - 1
 
-        if action == 5:
+        if action == 5 and x + 1 < dim_x and y - 1 >= 0 and self.grid[x + 1][y - 1] == "O":
             x = x + 1
             y = y - 1
 
-        if action == 4:
+        if action == 4 and x + 1 < dim_x and self.grid[x + 1][y] == "O":
             x = x + 1
 
-        if action == 3:
+        if action == 3 and x + 1 < dim_x and y + 1 < dim_y and self.grid[x + 1][y + 1] == "O":
             x = x + 1
             y = y + 1
 
-        if action == 2:
+        if action == 2 and y + 1 < dim_y and self.grid[x][y + 1] == "O":
             y = y + 1
 
-        if action == 1:
+        if action == 1 and x - 1 >= 0 and y + 1 < dim_y and self.grid[x - 1][y + 1] == "O":
             x = x - 1
             y = y + 1
 
-        if action == 0:
+        if action == 0 and x - 1 >= 0 and self.grid[x - 1][y] == "O":
             x = x - 1
 
-        if action == 7:
+        if action == 7 and x - 1 >= 0 and y - 1 >= 0 and self.grid[x - 1][y - 1] == "O":
             x = x - 1
             y = y - 1
 
